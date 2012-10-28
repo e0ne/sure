@@ -18,9 +18,13 @@
 import re
 import os
 import sys
-import __builtin__
 import inspect
 import traceback
+
+try:
+    import __builtin__ as builtins
+except ImportError:
+    import builtins
 
 from copy import deepcopy
 from pprint import pformat
@@ -241,7 +245,7 @@ class that(object):
         try:
             self._src(*self._callable_args, **self._callable_kw)
 
-        except Exception, e:
+        except Exception as e:
             if isinstance(exc, basestring):
                 msg = exc
 
@@ -505,7 +509,7 @@ class that(object):
 
         return True
 
-    @__builtin__.property
+    @builtins.property
     def is_empty(self):
         try:
             lst = list(self._src)
@@ -518,7 +522,7 @@ class that(object):
         except TypeError:
             raise AssertionError("%r is not iterable" % self._src)
 
-    @__builtin__.property
+    @builtins.property
     def are_empty(self):
         return self.is_empty
 
@@ -562,7 +566,7 @@ def within(**units):
 
             try:
                 func(start, *args, **kw)
-            except TypeError, e:
+            except TypeError as e:
                 fmt = u'%s() takes no arguments'
                 err = unicode(e)
                 if (fmt % func.__name__) in err:
@@ -570,13 +574,13 @@ def within(**units):
                 else:
                     exc.append(e)
 
-            except Exception, e:
+            except Exception as e:
                 exc.append(e)
 
             end = datetime.utcnow()
             delta = (end - start)
             took = convert_to(delta.microseconds)
-            print took, timeout
+            print(took, timeout)
             assert took < timeout, \
                    '%s did not run within %s %s' % (func.__name__, word, unit)
             if exc:
@@ -645,7 +649,7 @@ def action_for(context, provides=None, depends_on=None):
         depends_on = []
 
     def register_providers(func, attr):
-        if re.search(ur'^[{]\d+[}]$', attr):
+        if re.search('^[{]\d+[}]$', attr):
             return  # ignore dinamically declared provides
 
         if not attr in context.__sure_providers_of__:
@@ -654,7 +658,7 @@ def action_for(context, provides=None, depends_on=None):
         context.__sure_providers_of__[attr].append(func)
 
     def register_dinamic_providers(func, attr, args, kwargs):
-        found = re.search(ur'^[{](\d+)[}]$', attr)
+        found = re.search('^[{](\d+)[}]$', attr)
         if not found:
             return  # ignore dinamically declared provides
 
@@ -672,7 +676,7 @@ def action_for(context, provides=None, depends_on=None):
         context.__sure_providers_of__[attr].append(func)
 
     def ensure_providers(func, attr, args, kwargs):
-        found = re.search(ur'^[{](\d+)[}]$', attr)
+        found = re.search('^[{](\d+)[}]$', attr)
         if found:
             index = int(found.group(1))
             attr = args[index]
@@ -741,7 +745,7 @@ def action_for(context, provides=None, depends_on=None):
     return decorate_and_absorb
 
 
-class DeepExplanation(unicode):
+class DeepExplanation(str):
     def get_header(self, X, Y, suffix):
         return (u"given\nX = %s\n    and\nY = %s\n%s" % (
             repr(X).decode('utf-8'),
@@ -927,7 +931,7 @@ def assertionmethod(func):
 
 
 def assertionproperty(func):
-    return __builtin__.property(assertionmethod(func))
+    return builtins.property(assertionmethod(func))
 
 POSITIVES = [
     'should',
@@ -1097,10 +1101,10 @@ class AssertionBuilder(object):
     def none(self):
         if self.negative:
             assert self.obj is not None, (
-                ur"expected `{0}` to not be None".format(self.obj))
+                "expected `{0}` to not be None".format(self.obj))
         else:
             assert self.obj is None, (
-                ur"expected `{0}` to be None".format(self.obj))
+                "expected `{0}` to be None".format(self.obj))
 
         return True
 
@@ -1230,7 +1234,7 @@ class AssertionBuilder(object):
         self._callable_kw = kw
         return self
 
-    called = __builtin__.property(called_with)
+    called = builtins.property(called_with)
 
     @assertionmethod
     def throw(self, *args, **kw):
@@ -1246,7 +1250,7 @@ class AssertionBuilder(object):
             try:
                 self.obj(*self._callable_args, **self._callable_kw)
                 return True
-            except Exception, e:
+            except Exception as e:
                 err = msg.format(
                     self.obj,
                     self._that._callable_args,
@@ -1287,7 +1291,7 @@ if is_cpython and allows_new_syntax:
             return instance
 
         method.__name__ = name
-        return (__builtin__.property(method) if prop else method(None))
+        return (builtins.property(method) if prop else method(None))
 
     def negative_assertion(name, prop=True):
         def method(self):
@@ -1302,7 +1306,7 @@ if is_cpython and allows_new_syntax:
             return instance
 
         method.__name__ = name
-        return (__builtin__.property(method) if prop else method(None))
+        return (builtins.property(method) if prop else method(None))
 
     object_handler = patchable_builtin(object)
 

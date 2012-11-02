@@ -18,7 +18,7 @@
 
 import os
 from sure import version
-from setuptools import setup
+from distutils.core import setup
 
 
 def get_packages():

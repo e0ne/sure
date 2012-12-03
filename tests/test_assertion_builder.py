@@ -19,7 +19,7 @@ from sure import this, these, those, it, that, AssertionBuilder
 
 
 def test_assertion_builder_synonyms():
-    (u"this, it, these and those are all synonyms")
+    ("this, it, these and those are all synonyms")
 
     assert that(it).is_a(AssertionBuilder)
     assert that(this).is_a(AssertionBuilder)
@@ -28,7 +28,7 @@ def test_assertion_builder_synonyms():
 
 
 def test_4_equal_2p2():
-    (u"this(4).should.equal(2 + 2)")
+    ("this(4).should.equal(2 + 2)")
 
     assert this(4).should.equal(2 + 2)
     assert this(4).should_not.equal(8)
@@ -48,7 +48,7 @@ def test_4_equal_2p2():
 
 
 def test_2_within_0a2():
-    (u"this(1).should.be.within(0, 2)")
+    ("this(1).should.be.within(0, 2)")
 
     assert this(1).should.be.within(0, 2)
     assert this(4).should_not.be.within(0, 2)
@@ -67,7 +67,7 @@ def test_2_within_0a2():
 
 
 def test_true_be_ok():
-    (u"this(True).should.be.ok")
+    ("this(True).should.be.ok")
 
     assert this(True).should.be.ok
     assert this(False).should_not.be.ok
@@ -86,7 +86,7 @@ def test_true_be_ok():
 
 
 def test_false_be_falsy():
-    (u"this(False).should.be.false")
+    ("this(False).should.be.false")
 
     assert this(False).should.be.falsy
     assert this(True).should_not.be.falsy
@@ -105,7 +105,7 @@ def test_false_be_falsy():
 
 
 def test_none():
-    (u"this(None).should.be.none")
+    ("this(None).should.be.none")
 
     assert this(None).should.be.none
     assert this(not None).should_not.be.none
@@ -124,7 +124,7 @@ def test_none():
 
 
 def test_should_be_a():
-    (u"this(None).should.be.none")
+    ("this(None).should.be.none")
 
     assert this(1).should.be.an(int)
     assert this([]).should.be.a('collections.Iterable')
@@ -144,7 +144,7 @@ def test_should_be_a():
 
 
 def test_should_be_callable():
-    (u"this(function).should.be.callable")
+    ("this(function).should.be.callable")
 
     assert this(lambda: None).should.be.callable
     assert this("aa").should_not.be.callable
@@ -164,7 +164,7 @@ def test_should_be_callable():
 
 
 def test_iterable_should_be_empty():
-    (u"this(iterable).should.be.empty")
+    ("this(iterable).should.be.empty")
 
     assert this([]).should.be.empty
     assert this([1, 2, 3]).should_not.be.empty
@@ -184,7 +184,7 @@ def test_iterable_should_be_empty():
 
 
 def test_iterable_should_have_length_of():
-    (u"this(iterable).should.have.length_of(N)")
+    ("this(iterable).should.have.length_of(N)")
 
     assert this({'foo': 'bar', 'a': 'b'}).should.have.length_of(2)
     assert this([1, 2, 3]).should_not.have.length_of(4)
@@ -205,7 +205,7 @@ def test_iterable_should_have_length_of():
 
 
 def test_greater_than():
-    (u"this(X).should.be.greater_than(Y)")
+    ("this(X).should.be.greater_than(Y)")
 
     assert this(5).should.be.greater_than(4)
     assert this(1).should_not.be.greater_than(2)
@@ -226,7 +226,7 @@ def test_greater_than():
 
 
 def test_lower_than():
-    (u"this(X).should.be.lower_than(Y)")
+    ("this(X).should.be.lower_than(Y)")
 
     assert this(4).should.be.lower_than(5)
     assert this(2).should_not.be.lower_than(1)
@@ -247,13 +247,13 @@ def test_lower_than():
 
 
 def test_have_property():
-    (u"this(instance).should.have.property(property_name)")
+    ("this(instance).should.have.property(property_name)")
 
     class Person(object):
         name = "John Doe"
 
         def __repr__(self):
-            return ur"Person()"
+            return r"Person()"
 
     jay = Person()
 
@@ -276,14 +276,14 @@ def test_have_property():
 
 
 def test_have_property_with_value():
-    (u"this(instance).should.have.property(property_name).being or "
+    ("this(instance).should.have.property(property_name).being or "
      ".with_value should allow chain up")
 
     class Person(object):
         name = "John Doe"
 
         def __repr__(self):
-            return ur"Person()"
+            return r"Person()"
 
     jay = Person()
 
@@ -308,7 +308,7 @@ def test_have_property_with_value():
 
 
 def test_have_key():
-    (u"this(dictionary).should.have.key(key_name)")
+    ("this(dictionary).should.have.key(key_name)")
 
     jay = dict(name="John Doe")
 
@@ -332,7 +332,7 @@ def test_have_key():
 
 
 def test_have_key_with_value():
-    (u"this(dictionary).should.have.key(key_name).being or "
+    ("this(dictionary).should.have.key(key_name).being or "
      ".with_value should allow chain up")
 
     jay = dict(name="John Doe")

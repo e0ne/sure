@@ -139,7 +139,7 @@ def test_that_has():
     assert that(Object).like("name")
     assert "name" in sure.that(Object)
 
-    assert dictionary.has_key('name')
+    assert 'name' in dictionary
     assert that(dictionary).has("name")
     assert that(dictionary).like("name")
     assert "name" in sure.that(dictionary)
@@ -173,7 +173,7 @@ def test_that_at_key_equals():
 def test_that_len_is():
     "sure.that() len_is(number)"
 
-    lst = range(1000)
+    lst = list(range(1000))
 
     assert that(lst).len_is(1000)
     assert len(lst) == 1000
@@ -183,8 +183,8 @@ def test_that_len_is():
 def test_that_len_greater_than():
     "sure.that() len_greater_than(number)"
 
-    lst = range(1000)
-    lst2 = range(100)
+    lst = list(range(1000))
+    lst2 = list(range(100))
 
     assert that(lst).len_greater_than(100)
     assert len(lst) == 1000
@@ -194,10 +194,10 @@ def test_that_len_greater_than():
 def test_that_len_greater_than_should_raise_assertion_error():
     "sure.that() len_greater_than(number) raise AssertionError"
 
-    lst = range(1000)
+    lst = list(range(1000))
     try:
         that(lst).len_greater_than(1000)
-    except AssertionError, e:
+    except AssertionError as e:
         assert_equals(
             str(e),
             'the length of the list should be greater then %d, but is %d'  \
@@ -207,8 +207,8 @@ def test_that_len_greater_than_should_raise_assertion_error():
 def test_that_len_greater_than_or_equals():
     "sure.that() len_greater_than_or_equals(number)"
 
-    lst = range(1000)
-    lst2 = range(100)
+    lst = list(range(1000))
+    lst2 = list(range(100))
 
     assert that(lst).len_greater_than_or_equals(100)
     assert that(lst).len_greater_than_or_equals(1000)
@@ -220,10 +220,10 @@ def test_that_len_greater_than_or_equals():
 def test_that_len_greater_than_or_equals_should_raise_assertion_error():
     "sure.that() len_greater_than_or_equals(number) raise AssertionError"
 
-    lst = range(1000)
+    lst = list(range(1000))
     try:
         that(lst).len_greater_than_or_equals(1001)
-    except AssertionError, e:
+    except AssertionError as e:
         assert_equals(
             str(e),
             'the length of %r should be greater then or equals %d, but is %d' \
@@ -233,8 +233,8 @@ def test_that_len_greater_than_or_equals_should_raise_assertion_error():
 def test_that_len_lower_than():
     "sure.that() len_lower_than(number)"
 
-    lst = range(100)
-    lst2 = range(1000)
+    lst = list(range(100))
+    lst2 = list(range(1000))
 
     assert that(lst).len_lower_than(101)
     assert len(lst) == 100
@@ -244,10 +244,10 @@ def test_that_len_lower_than():
 def test_that_len_lower_than_should_raise_assertion_error():
     "sure.that() len_lower_than(number) raise AssertionError"
 
-    lst = range(1000)
+    lst = list(range(1000))
     try:
         that(lst).len_lower_than(1000)
-    except AssertionError, e:
+    except AssertionError as e:
         assert_equals(
             str(e),
             'the length of %r should be lower then %d, but is %d' % \
@@ -257,8 +257,8 @@ def test_that_len_lower_than_should_raise_assertion_error():
 def test_that_len_lower_than_or_equals():
     "sure.that() len_lower_than_or_equals(number)"
 
-    lst = range(1000)
-    lst2 = range(1001)
+    lst = list(range(1000))
+    lst2 = list(range(1001))
 
     assert that(lst).len_lower_than_or_equals(1001)
     assert that(lst).len_lower_than_or_equals(1000)
@@ -270,10 +270,10 @@ def test_that_len_lower_than_or_equals():
 def test_that_len_lower_than_or_equals_should_raise_assertion_error():
     "sure.that() len_lower_than_or_equals(number) raise AssertionError"
 
-    lst = range(1000)
+    lst = list(range(1000))
     try:
         that(lst).len_lower_than_or_equals(100)
-    except AssertionError, e:
+    except AssertionError as e:
         assert_equals(
             str(e),
             'the length of %r should be lower then or equals %d, but is %d' % \
@@ -383,8 +383,8 @@ def test_that_checking_each_matches():
     try:
         assert that(animals).in_each("attributes['kind']").matches(['dog'])
         assert False, 'should not reach here'
-    except AssertionError, e:
-        assert that(unicode(e)).equals(
+    except AssertionError as e:
+        assert that(str(e)).equals(
             '%r has 5 items, but the matching list has 1: %r' % (
                 ['dog','cat','cow','cow','cow'], ['dog'],
             )
@@ -409,8 +409,8 @@ def test_that_raises():
         function(1, 2)
         assert False, 'should not reach here'
 
-    except RuntimeError, e:
-        assert unicode(e) == 'yeah, it failed'
+    except RuntimeError as e:
+        assert str(e) == 'yeah, it failed'
 
     except Exception:
         assert False, 'should not reach here'
@@ -520,7 +520,7 @@ def test_that_contains_none():
 
     assert that(assertions).raises(
         AssertionError,
-        u"'in <string>' requires string as left operand",
+        "'in <string>' requires string as left operand",
     )
 
 
@@ -530,10 +530,10 @@ def test_that_none_contains_string():
     try:
         assert that(None).contains('bungalow')
         assert False, 'should not reach here'
-    except Exception, e:
+    except Exception as e:
         assert_equals(
-            unicode(e),
-            u"argument of type 'NoneType' is not iterable",
+            str(e),
+            "argument of type 'NoneType' is not iterable",
         )
 
 
@@ -588,15 +588,15 @@ def test_that_something_iterable_matches_another():
     assert that(one).equals(two)
 
     def fail_1():
-        assert that(range(1)).matches(xrange(2))
+        assert that(list(range(1))).matches(range(2))
 
     class Fail2(object):
         def __init__(self):
-            assert that(xrange(1)).matches(range(2))
+            assert that(range(1)).matches(list(range(2)))
 
     class Fail3(object):
         def __call__(self):
-            assert that(xrange(1)).matches(range(2))
+            assert that(range(1)).matches(list(range(2)))
 
     assert that(fail_1).raises('X is a list and Y is a xrange instead')
     assert that(Fail2).raises('X is a xrange and Y is a list instead')
@@ -621,7 +621,7 @@ def test_within_fail():
     failed = False
     try:
         within(five=miliseconds)(sleepy)()
-    except AssertionError, e:
+    except AssertionError as e:
         failed = True
         assert_equals('sleepy did not run within five miliseconds', str(e))
 
@@ -647,10 +647,10 @@ def test_word_to_number_fail():
     failed = False
     try:
         sure.word_to_number('twenty')
-    except AssertionError, e:
+    except AssertionError as e:
         failed = True
         assert_equals(
-            unicode(e),
+            str(e),
             'sure supports only literal numbers from one ' \
             'to twelve, you tried the word "twenty"')
 
@@ -721,7 +721,7 @@ def test_within_pass_utc():
 
 
 def test_that_is_a_matcher_should_absorb_callables_to_be_used_as_matcher():
-    u"that.is_a_matcher should absorb callables to be used as matcher"
+    "that.is_a_matcher should absorb callables to be used as matcher"
     @that.is_a_matcher
     def is_truthful(what):
         assert bool(what), '%s is so untrue' % (what)
@@ -936,7 +936,7 @@ def test_that_contains_dictionary_keys():
 
     data = dict(name='foobar')
     assert 'name' in data
-    assert 'name' in data.keys()
+    assert 'name' in list(data.keys())
     assert that(data).contains('name')
 
 
@@ -1531,8 +1531,8 @@ def test_raises_with_string():
     try:
         that(it_fails).raises('wrong msg')
         raise RuntimeError('should not reach here')
-    except AssertionError, e:
-        assert that(unicode(e)).contains('''EXPECTED:
+    except AssertionError as e:
+        assert that(str(e)).contains('''EXPECTED:
 wrong msg
 
 GOT:
@@ -1543,9 +1543,9 @@ def test_deep_equals_weird():
     part1 = [
         ('Bootstraping Redis role', []),
         ('Restart scalarizr', []),
-        ('Rebundle server', [u'rebundle']),
-        ('Use new role', [u'rebundle']),
-        ('Restart scalarizr after bundling', [u'rebundle']),
+        ('Rebundle server', ['rebundle']),
+        ('Use new role', ['rebundle']),
+        ('Restart scalarizr after bundling', ['rebundle']),
         ('Bundling data', []),
         ('Modifying data', []),
         ('Reboot server', []),
@@ -1553,19 +1553,19 @@ def test_deep_equals_weird():
         ('Setup replication', []),
         ('Restart scalarizr in slave', []),
         ('Slave force termination', []),
-        ('Slave delete EBS', [u'ec2']),
-        ('Setup replication for EBS test', [u'ec2']),
+        ('Slave delete EBS', ['ec2']),
+        ('Setup replication for EBS test', ['ec2']),
         ('Writing on Master, reading on Slave', []),
         ('Slave -> Master promotion', []),
-        ('Restart farm', [u'restart_farm']),
+        ('Restart farm', ['restart_farm']),
     ]
 
     part2 = [
-        ('Bootstraping Redis role', [u'rebundle', u'rebundle', u'rebundle']),
+        ('Bootstraping Redis role', ['rebundle', 'rebundle', 'rebundle']),
         ('Restart scalarizr', []),
-        ('Rebundle server', [u'rebundle']),
-        ('Use new role', [u'rebundle']),
-        ('Restart scalarizr after bundling', [u'rebundle']),
+        ('Rebundle server', ['rebundle']),
+        ('Use new role', ['rebundle']),
+        ('Restart scalarizr after bundling', ['rebundle']),
         ('Bundling data', []),
         ('Modifying data', []),
         ('Reboot server', []),
@@ -1573,11 +1573,11 @@ def test_deep_equals_weird():
         ('Setup replication', []),
         ('Restart scalarizr in slave', []),
         ('Slave force termination', []),
-        ('Slave delete EBS', [u'ec2']),
-        ('Setup replication for EBS test', [u'ec2']),
+        ('Slave delete EBS', ['ec2']),
+        ('Setup replication for EBS test', ['ec2']),
         ('Writing on Master, reading on Slave', []),
         ('Slave -> Master promotion', []),
-        ('Restart farm', [u'restart_farm']),
+        ('Restart farm', ['restart_farm']),
     ]
 
     that(part1).equals.when.called_with(part2).should.throw("")

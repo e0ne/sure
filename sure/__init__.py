@@ -20,9 +20,11 @@ import os
 import sys
 import inspect
 import traceback
+import collections
+from functools import reduce
 
 try:
-    import __builtin__ as builtins
+    import builtins as builtins
 except ImportError:
     import builtins
 
@@ -46,7 +48,7 @@ def _get_file_name(func):
     try:
         name = inspect.getfile(func)
     except AttributeError:
-        name = func.func_code.co_filename
+        name = func.__code__.co_filename
 
     return os.path.abspath(name)
 
@@ -55,7 +57,7 @@ def _get_line_number(func):
     try:
         return inspect.getlineno(func)
     except AttributeError:
-        return func.func_code.co_firstlineno
+        return func.__code__.co_firstlineno
 
 
 def itemize_length(items):
@@ -99,7 +101,7 @@ class VariablesBag(dict):
 
 
 class CallBack(object):
-    context_error = u"the function %s defined at %s line %d, is being "\
+    context_error = "the function %s defined at %s line %d, is being "\
         "decorated by either @that_with_context or @scenario, so it should " \
         "take at least 1 parameter, which is the test context"
 
@@ -108,8 +110,8 @@ class CallBack(object):
         self.args = args or []
         self.kwargs = kwargs or {}
         self.callback_name = cb.__name__
-        self.callback_filename = os.path.split(cb.func_code.co_filename)[-1]
-        self.callback_lineno = cb.func_code.co_firstlineno + 1
+        self.callback_filename = os.path.split(cb.__code__.co_filename)[-1]
+        self.callback_lineno = cb.__code__.co_firstlineno + 1
 
     def apply(self, *optional_args):
         args = list(optional_args)
@@ -138,7 +140,7 @@ def that_with_context(setup=None, teardown=None):
         def wrap(*args, **kw):
             context = VariablesBag()
 
-            if callable(setup):
+            if isinstance(setup, collections.Callable):
                 cb = CallBack(setup, args, kw)
                 cb.apply(context)
 
@@ -151,7 +153,7 @@ def that_with_context(setup=None, teardown=None):
             try:
                 res = test.apply(context)
             finally:
-                if callable(teardown):
+                if isinstance(teardown, collections.Callable):
                     cb = CallBack(teardown, args, kw)
                     cb.apply(context)
 
@@ -183,7 +185,7 @@ def explanation(msg):
 
 
 def is_iterable(obj):
-    return hasattr(obj, '__iter__') and not isinstance(obj, basestring)
+    return hasattr(obj, '__iter__') and not isinstance(obj, str)
 
 
 def all_integers(obj):
@@ -239,14 +241,14 @@ class that(object):
         return new_matcher
 
     def raises(self, exc, msg=None):
-        if not callable(self._src):
+        if not isinstance(self._src, collections.Callable):
             raise TypeError('%r is not callable' % self._src)
 
         try:
             self._src(*self._callable_args, **self._callable_kw)
 
         except Exception as e:
-            if isinstance(exc, basestring):
+            if isinstance(exc, str):
                 msg = exc
 
             err = str(e)
@@ -258,7 +260,7 @@ class that(object):
                         '%r should raise %r, but raised %r' % (
                             self._src, exc, e.__class__))
 
-                if isinstance(msg, basestring) and msg not in err:
+                if isinstance(msg, str) and msg not in err:
                     raise AssertionError('''
                     %r raised %s, but the exception message does not
                     match.\n\nEXPECTED:\n%s\n\nGOT:\n%s'''.strip() % (
@@ -266,7 +268,7 @@ class that(object):
                             type(e).__name__,
                             msg, err))
 
-            elif isinstance(msg, basestring) and msg not in err:
+            elif isinstance(msg, str) and msg not in err:
                 raise AssertionError(
                     'When calling %r the exception message does not match. ' \
                     'Expected: %r\n got:\n %r' % (self._src, msg, err))
@@ -307,7 +309,7 @@ class that(object):
 
     def equals(self, dst):
         if self._attribute and is_iterable(self._src):
-            msg = u'%r[%d].%s should be %r, but is %r'
+            msg = '%r[%d].%s should be %r, but is %r'
 
             for index, item in enumerate(self._src):
                 if self._range:
@@ -329,12 +331,12 @@ class that(object):
         old_dst = pformat(dst)
         self._src = re.sub(r'\s', '', self._src).lower()
         dst = re.sub(r'\s', '', dst).lower()
-        error = u'%s does not look like %s' % (old_src, old_dst)
+        error = '%s does not look like %s' % (old_src, old_dst)
         assert self._src == dst, error
         return self._src == dst
 
     def every_one_is(self, dst):
-        msg = u'all members of %r should be %r, but the %dth is %r'
+        msg = 'all members of %r should be %r, but the %dth is %r'
         for index, item in enumerate(self._src):
             if self._range:
                 if index < self._range[0] or index > self._range[1]:
@@ -378,7 +380,7 @@ class that(object):
         length = len(self._src)
 
         if length <= that:
-            error = u'the length of the %s should be greater then %d, but is %d' % (
+            error = 'the length of the %s should be greater then %d, but is %d' % (
                 type(self._src).__name__,
                 that,
                 length,
@@ -393,7 +395,7 @@ class that(object):
         length = len(self._src)
 
         if length < that:
-            error = u'the length of %r should be greater then or equals %d, but is %d' % (
+            error = 'the length of %r should be greater then or equals %d, but is %d' % (
                 self._src,
                 that,
                 length,
@@ -411,7 +413,7 @@ class that(object):
         length = len(self._src)
 
         if length >= that:
-            error = u'the length of %r should be lower then %r, but is %d' % (
+            error = 'the length of %r should be lower then %r, but is %d' % (
                 self._src,
                 original_that,
                 length,
@@ -424,7 +426,7 @@ class that(object):
         that = self._get_that(that)
 
         length = len(self._src)
-        error = u'the length of %r should be lower then or equals %d, but is %d'
+        error = 'the length of %r should be lower then or equals %d, but is %d'
 
         if length > that:
             msg = error % (
@@ -441,7 +443,7 @@ class that(object):
         length = len(self._src)
 
         if length != that:
-            error = u'the length of %r should be %d, but is %d' % (
+            error = 'the length of %r should be %d, but is %d' % (
                 self._src,
                 that,
                 length,
@@ -455,7 +457,7 @@ class that(object):
         length = len(self._src)
 
         if length == that:
-            error = u'the length of %r should not be %d' % (
+            error = 'the length of %r should not be %d' % (
                 self._src,
                 that,
             )
@@ -475,17 +477,17 @@ class that(object):
         return self
 
     def matches(self, items):
-        msg = u'%r[%d].%s should be %r, but is %r'
+        msg = '%r[%d].%s should be %r, but is %r'
         get_eval = lambda item: eval(
             "%s.%s" % ('current', self._eval), {}, {'current': item},
         )
 
         if self._eval and is_iterable(self._src):
-            if isinstance(items, basestring):
+            if isinstance(items, str):
                 items = [items for x in range(len(items))]
             else:
                 if len(items) != len(self._src):
-                    source = map(get_eval, self._src)
+                    source = list(map(get_eval, self._src))
                     source_len = len(source)
                     items_len = len(items)
 
@@ -494,7 +496,7 @@ class that(object):
                         % (source, source_len, items_len, items),
                     )
 
-            for index, (item, other) in enumerate(zip(self._src, items)):
+            for index, (item, other) in enumerate(list(zip(self._src, items))):
                 if self._range:
                     if index < self._range[0] or index > self._range[1]:
                         continue
@@ -528,7 +530,7 @@ class that(object):
 
     def __contains__(self, what):
         if isinstance(self._src, dict):
-            items = self._src.keys()
+            items = list(self._src.keys())
 
         if isinstance(self._src, Iterable):
             items = self._src
@@ -553,7 +555,7 @@ class that(object):
 def within(**units):
     assert len(units) == 1, 'use within(number=unit). e.g.: within(one=second)'
 
-    word, unit = units.items()[0]
+    word, unit = list(units.items())[0]
     value = word_to_number(word)
 
     convert_from, convert_to = UNITS[unit]
@@ -567,8 +569,8 @@ def within(**units):
             try:
                 func(start, *args, **kw)
             except TypeError as e:
-                fmt = u'%s() takes no arguments'
-                err = unicode(e)
+                fmt = '%s() takes no arguments'
+                err = str(e)
                 if (fmt % func.__name__) in err:
                     func(*args, **kw)
                 else:
@@ -580,7 +582,7 @@ def within(**units):
             end = datetime.utcnow()
             delta = (end - start)
             took = convert_to(delta.microseconds)
-            print(took, timeout)
+            print((took, timeout))
             assert took < timeout, \
                    '%s did not run within %s %s' % (func.__name__, word, unit)
             if exc:
@@ -612,10 +614,10 @@ UNITS = {
     ),
 }
 
-milisecond = miliseconds = u'miliseconds'
-microsecond = microseconds = u'microseconds'
-second = seconds = u'seconds'
-minute = minutes = u'minutes'
+milisecond = miliseconds = 'miliseconds'
+microsecond = microseconds = 'microseconds'
+second = seconds = 'seconds'
+minute = minutes = 'minutes'
 
 
 def word_to_number(word):
@@ -686,12 +688,12 @@ def action_for(context, provides=None, depends_on=None):
             'into the context, but it did not. Please double check its ' \
             'implementation' % (func.__name__, attr)
 
-    dependency_error_lonely = u'the action "%s" defined at %s:%d ' \
+    dependency_error_lonely = 'the action "%s" defined at %s:%d ' \
         'depends on the attribute "%s" to be available in the' \
         ' context. It turns out that there are no actions providing ' \
         'that. Please double-check the implementation'
 
-    dependency_error_hints = u'the action "%s" defined at %s:%d ' \
+    dependency_error_hints = 'the action "%s" defined at %s:%d ' \
         'depends on the attribute "%s" to be available in the context.'\
         ' You need to call one of the following actions beforehand:\n'
 
@@ -747,7 +749,7 @@ def action_for(context, provides=None, depends_on=None):
 
 class DeepExplanation(str):
     def get_header(self, X, Y, suffix):
-        return (u"given\nX = %s\n    and\nY = %s\n%s" % (
+        return ("given\nX = %s\n    and\nY = %s\n%s" % (
             repr(X).decode('utf-8'),
             repr(Y).decode('utf-8'),
             suffix)).strip()
@@ -764,7 +766,7 @@ class DeepComparison(object):
 
     def is_simple(self, obj):
         return isinstance(obj, (
-            int, long, float, basestring,
+            int, float, str
         ))
 
     def compare_complex_stuff(self, X, Y):
@@ -781,7 +783,7 @@ class DeepComparison(object):
         if X == Y:
             return True
         else:
-            m = u'X%s != Y%s' % (red(c.current_X_keys), green(c.current_Y_keys))
+            m = 'X%s != Y%s' % (red(c.current_X_keys), green(c.current_Y_keys))
             return DeepExplanation(m)
 
     def compare_dicts(self, X, Y):
@@ -793,14 +795,14 @@ class DeepComparison(object):
         diff_x = list(set(x_keys).difference(set(y_keys)))
         diff_y = list(set(y_keys).difference(set(x_keys)))
         if diff_x:
-            msg = u"X%s has the key '%%s' whereas Y%s doesn't" % (
+            msg = "X%s has the key '%%s' whereas Y%s doesn't" % (
                 red(c.current_X_keys),
                 green(c.current_Y_keys),
             ) % diff_x[0]
             return DeepExplanation(msg)
 
         elif diff_y:
-            msg = u"X%s doesn't have the key '%%s' whereas Y%s has it" % (
+            msg = "X%s doesn't have the key '%%s' whereas Y%s has it" % (
                 red(c.current_X_keys),
                 green(c.current_Y_keys),
             ) % diff_y[0]
@@ -851,17 +853,17 @@ class DeepComparison(object):
         return self._context
 
     def compare_iterables(self, X, Y):
-        len_X, len_Y = map(len, (X, Y))
+        len_X, len_Y = list(map(len, (X, Y)))
         if len_X > len_Y:
-            msg = u"X has %d items whereas Y has only %d" % (len_X, len_Y)
+            msg = "X has %d items whereas Y has only %d" % (len_X, len_Y)
             return DeepExplanation(msg)
         elif len_X < len_Y:
-            msg = u"Y has %d items whereas X has only %d" % (len_Y, len_X)
+            msg = "Y has %d items whereas X has only %d" % (len_Y, len_X)
             return DeepExplanation(msg)
         elif X == Y:
             return True
         else:
-            for i, (value_X, value_Y) in enumerate(zip(X, Y)):
+            for i, (value_X, value_Y) in enumerate(list(zip(X, Y))):
                 self.key_X = self.key_Y = i
                 child = DeepComparison(
                     value_X,
@@ -878,13 +880,13 @@ class DeepComparison(object):
             if X == Y:
                 return True
             c = self.get_context()
-            m = u"X%s is %%r whereas Y%s is %%r"
+            m = "X%s is %%r whereas Y%s is %%r"
             msg = m % (red(c.current_X_keys), green(c.current_Y_keys)) % (X, Y)
             return DeepExplanation(msg)
 
         elif type(X) is not type(Y):  # different types
-            xname, yname = map(lambda _: type(_).__name__, (X, Y))
-            msg = u'X%s is a %%s and Y%s is a %%s instead' % (
+            xname, yname = [type(_).__name__ for _ in (X, Y)]
+            msg = 'X%s is a %%s and Y%s is a %%s instead' % (
                 red(c.current_X_keys),
                 green(c.current_Y_keys),
             ) % (xname, yname)
@@ -919,10 +921,10 @@ def assertionmethod(func):
     @wraps(func)
     def wrapper(self, *args, **kw):
         value = func(self, *args, **kw)
-        msg = u"{0}({1}) failed".format(
+        msg = "{0}({1}) failed".format(
             func.__name__,
-            u", ".join(map(repr, args)),
-            u", ".join([u"{0}={1}".format(k, repr(kw[k])) for k in kw]),
+            ", ".join(map(repr, args)),
+            ", ".join(["{0}={1}".format(k, repr(kw[k])) for k in kw]),
         )
         assert value, msg
         return value
@@ -992,10 +994,10 @@ class AssertionBuilder(object):
     @assertionproperty
     def callable(self):
         if self.negative:
-            assert not callable(self.obj), (
+            assert not isinstance(self.obj, collections.Callable), (
                 'expected `{0}` to not be callable but it is'.format(repr(self.obj)))
         else:
-            assert callable(self.obj), (
+            assert isinstance(self.obj, collections.Callable), (
                 'expected {0} to be callable'.format(repr(self.obj)))
 
         return True
@@ -1063,20 +1065,20 @@ class AssertionBuilder(object):
         length = len(self.obj)
         if self.negative:
             assert length > 0, (
-                u"expected `{0}` to not be empty".format(repr(self.obj)))
+                "expected `{0}` to not be empty".format(repr(self.obj)))
         else:
             assert length is 0, (
-                u"expected `{0}` to be empty but it has {1} items".format(self.repr, length))
+                "expected `{0}` to be empty but it has {1} items".format(self.repr, length))
 
         return True
 
     @assertionproperty
     def ok(self):
         if self.negative:
-            msg = u'expected `{0}` to be falsy'.format(self.obj)
+            msg = 'expected `{0}` to be falsy'.format(self.obj)
             assert not bool(self.obj), msg
         else:
-            msg = u'expected `{0}` to be truthy'.format(self.obj)
+            msg = 'expected `{0}` to be truthy'.format(self.obj)
             assert bool(self.obj), msg
 
         return True
@@ -1087,10 +1089,10 @@ class AssertionBuilder(object):
     @assertionproperty
     def falsy(self):
         if self.negative:
-            msg = u'expected `{0}` to be truthy'.format(self.obj)
+            msg = 'expected `{0}` to be truthy'.format(self.obj)
             assert bool(self.obj), msg
         else:
-            msg = u'expected `{0}` to be falsy'.format(self.obj)
+            msg = 'expected `{0}` to be falsy'.format(self.obj)
             assert not bool(self.obj), msg
 
         return True
@@ -1114,7 +1116,7 @@ class AssertionBuilder(object):
             collection_should = that(first)
         else:
             args = [first] + list(rest)
-            collection_should = that(range(*args))
+            collection_should = that(list(range(*args)))
 
         if self.negative:
             return collection_should.does_not_contain(self.obj)
@@ -1135,14 +1137,14 @@ class AssertionBuilder(object):
     def an(self, klass):
         if isinstance(klass, type):
             class_name = klass.__name__
-        elif isinstance(klass, basestring):
+        elif isinstance(klass, str):
             class_name = klass.strip()
         else:
-            class_name = unicode(klass)
+            class_name = str(klass)
 
         is_vowel = class_name[0] in 'aeiou'
 
-        if isinstance(klass, basestring):
+        if isinstance(klass, str):
             if '.' in klass:
                 items = klass.split('.')
                 first = items.pop(0)
@@ -1150,7 +1152,7 @@ class AssertionBuilder(object):
                     items = [first]
                     first = '_abcoll'
             else:
-                first = u'__builtin__'
+                first = '__builtin__'
                 items = [klass]
 
             klass = reduce(getattr, items, __import__(first))
@@ -1173,13 +1175,13 @@ class AssertionBuilder(object):
     @assertionmethod
     def greater_than(self, dest):
         if self.negative:
-            msg = u"expected `{0}` to not be greater than `{1}`".format(
+            msg = "expected `{0}` to not be greater than `{1}`".format(
                 self.obj, dest)
 
             assert not self.obj > dest, msg
 
         else:
-            msg = u"expected `{0}` to be greater than `{1}`".format(
+            msg = "expected `{0}` to be greater than `{1}`".format(
                 self.obj, dest)
             assert self.obj > dest, msg
 
@@ -1188,13 +1190,13 @@ class AssertionBuilder(object):
     @assertionmethod
     def lower_than(self, dest):
         if self.negative:
-            msg = u"expected `{0}` to not be lower than `{1}`".format(
+            msg = "expected `{0}` to not be lower than `{1}`".format(
                 self.obj, dest)
 
             assert not self.obj < dest, msg
 
         else:
-            msg = u"expected `{0}` to be lower than `{1}`".format(
+            msg = "expected `{0}` to be lower than `{1}`".format(
                 self.obj, dest)
             assert self.obj < dest, msg
 
@@ -1203,10 +1205,10 @@ class AssertionBuilder(object):
     @assertionmethod
     def below(self, num):
         if self.negative:
-            msg = u"{0} should not be below {1}".format(self.obj, num)
+            msg = "{0} should not be below {1}".format(self.obj, num)
             assert not self.obj < num, msg
         else:
-            msg = u"{0} should be below {1}".format(self.obj, num)
+            msg = "{0} should be below {1}".format(self.obj, num)
             assert self.obj < num, msg
 
         return True
@@ -1214,10 +1216,10 @@ class AssertionBuilder(object):
     @assertionmethod
     def above(self, num):
         if self.negative:
-            msg = u"{0} should not be above {1}".format(self.obj, num)
+            msg = "{0} should not be above {1}".format(self.obj, num)
             assert not self.obj > num, msg
         else:
-            msg = u"{0} should be above {1}".format(self.obj, num)
+            msg = "{0} should be above {1}".format(self.obj, num)
             assert self.obj > num, msg
         return True
 
@@ -1243,7 +1245,7 @@ class AssertionBuilder(object):
                      and_kwargs=self._callable_kw)
 
         if self.negative:
-            msg = (u"{0} called with args {1} and kwargs {2} should "
+            msg = ("{0} called with args {1} and kwargs {2} should "
                    "not raise {3} but raised {4}")
 
             exc = args and args[0] or Exception

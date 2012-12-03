@@ -19,7 +19,7 @@ import sure
 
 
 def test_it_works_with_objects():
-    (u"anything that inherits from object should be patched")
+    ("anything that inherits from object should be patched")
 
     (4).should.equal(2 + 2)
     "foo".should.equal("f" + ("o" * 2))
